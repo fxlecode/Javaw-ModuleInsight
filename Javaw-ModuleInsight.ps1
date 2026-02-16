@@ -111,7 +111,7 @@ function Test-Ofuscacion {
             }
         }
         
-        # Buscar strings cifrados (alta entropia en lo que deberia ser legible)
+        # Buscar strings cifrados (alta entriopia en lo que deberia ser legible)
         $stringsLegibles = 0
         $totalChunks = 0
         for ($i = 0; $i -lt $bytes.Length - 100; $i += 100) {
@@ -279,10 +279,9 @@ foreach ($proc in $procesos) {
             $hooks = @()
             if ($mod.ModuleName -in @("ws2_32.dll","wininet.dll","kernel32.dll","opengl32.dll","user32.dll")) {
                 try {
-                    $disk = [System.IO.File]::ReadAllBytes($path)
-                    $pe = [BitConverter]::ToInt32($disk, 0x3C)
-                    $ep = [BitConverter]::ToInt32($disk, $pe + 0x28)
-                    $base = [BitConverter]::ToInt64($disk, $pe + 0x30)
+                $pe = [BitConverter]::ToUInt32($disk, 0x3C)
+                $ep = [BitConverter]::ToUInt32($disk, $pe + 0x28)
+                $base = [BitConverter]::ToInt64($disk, $pe + 0x30)
                     $epOff = $ep - $base + $pe + 24
                     if ($epOff -gt 0) {
                         $diskB = $disk[$epOff..($epOff+5)]
@@ -387,5 +386,6 @@ if ($Exportar) {
 
 $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 }
+
 
 Test-Minecraft -Exportar
