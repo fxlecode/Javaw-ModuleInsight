@@ -178,33 +178,31 @@ foreach ($proc in $procesos) {
     $regiones = @()
 
     
-    Write-Host "[*] Privilegios confirmados. Iniciando escaneo de 100GB (esto puede tardar)..." -Fore Gray
+Write-Host "[*] Privilegios confirmados. Iniciando escaneo de 100GB (esto puede tardar)..." -Fore Gray
     Write-Host "[*] Iniciando escaneo de memoria dinámica..." -Fore Gray
 
     while ([MemStuff]::VirtualQueryEx($hProc, $addr, [ref]$mem, [System.Runtime.InteropServices.Marshal]::SizeOf($mem))) {
         if ($mem.State -eq [MemStuff]::COMMIT -and ($mem.Protect -eq [MemStuff]::EXRW -or $mem.Protect -eq 0x40)) {
             $sizeMB = [Math]::Round($mem.Size.ToInt64() / 1MB, 2)
             
-            if ($sizeMB -gt 0.02) {
+            if ($sizeMB -gt 0.02 -and $sizeMB -lt 300) {
                 $buf = New-Object byte[] ([Math]::Min(8192, $mem.Size.ToInt64()))
                 $read = 0
                 [void][MemStuff]::ReadProcessMemory($hProc, $mem.Base, $buf, $buf.Length, [ref]$read)
-               
-   
+                
                 $isPE = ($buf[0] -eq 0x4D -and $buf[1] -eq 0x5A)
                 $tieneCodigoSus = $false
                 $patrones = @()
                 
                 if ($isPE) {
-                    
                     $analisisMem = Test-Ofuscacion -bytesDirectos $buf
                     if ($analisisMem.Ofuscado) {
                         $tieneCodigoSus = $true
                         $patrones += "OFUSCADO_MEM:$($analisisMem.Tipo)"
                     }
                     
-                  
-                    $addr = [IntPtr]($mem.Base.ToInt64() + $mem.Size.ToInt64())
+                    
+                    
                     for ($i=0; $i -lt $buf.Length-5; $i++) {
                         if ($buf[$i] -eq 0xE9) {
                             $dest = [BitConverter]::ToInt32($buf, $i+1)
@@ -212,6 +210,26 @@ foreach ($proc in $procesos) {
                                 $tieneCodigoSus = $true
                                 $patrones += "JMP@$i"
                             }
+                        }
+                    }
+                }
+                
+                
+                if ($isPE -or $tieneCodigoSus -or $sizeMB -gt 0.5) {
+                    $regiones += @{
+                        Dir = "0x$($mem.Base.ToString('X'))"
+                        Size = $sizeMB
+                        PE = $isPE
+                        Sus = $tieneCodigoSus
+                        Patrones = $patrones
+                        Ofuscado = if ($isPE) { (Test-Ofuscacion -bytesDirectos $buf).Ofuscado } else { $false }
+                    }
+                }
+            }
+        }
+        
+        $addr = [IntPtr]($mem.Base.ToInt64() + $mem.Size.ToInt64())
+    }
                         }
                     }
                 }
@@ -399,6 +417,7 @@ $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 
 
 Test-Minecraft -Exportar
+
 
 
 
