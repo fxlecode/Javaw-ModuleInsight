@@ -218,7 +218,7 @@ foreach ($proc in $procesos) {
                 }
             }
         }
-        $addr = [IntPtr]::Add($mem.Base, $mem.Size.ToInt64())
+        $addr = [IntPtr]($mem.Base.ToInt64() + $mem.Size.ToInt64())
     }
 
     [void][MemStuff]::CloseHandle($hProc)
@@ -389,3 +389,4 @@ $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 
 
 Test-Minecraft -Exportar
+
