@@ -111,7 +111,11 @@ function Test-Ofuscacion {
             }
         }
         
-        # Buscar strings cifrados (alta entriopia en lo que deberia ser legible)
+       $currentProcess = [System.Diagnostics.Process]::GetCurrentProcess()
+       $handle = $currentProcess.Handle
+    
+       Write-Host "[*] Preparando privilegios de acceso..." -Fore Gray
+        
         $stringsLegibles = 0
         $totalChunks = 0
         for ($i = 0; $i -lt $bytes.Length - 100; $i += 100) {
@@ -153,6 +157,9 @@ if (-not $stringsExe) {
         Write-Host "Fallo descarga" -Fore Yellow
     }
 }
+    if ($addr.ToInt64() % 1024MB -eq 0) { 
+        Write-Host "    > Analizando bloque: 0x$($addr.ToString('X'))" -Fore Gray 
+    }
 
 $procesos = Get-Process -Name @("javaw","java") -EA SilentlyContinue | Where { 
     $_.MainWindowTitle -match "Minecraft|Lunar|Badlion|Forge|Fabric|OptiFine" -or 
@@ -187,14 +194,15 @@ foreach ($proc in $procesos) {
                 $patrones = @()
                 
                 if ($isPE) {
-                    # Analizar ofuscacion en memoria
+                    
                     $analisisMem = Test-Ofuscacion -bytesDirectos $buf
                     if ($analisisMem.Ofuscado) {
                         $tieneCodigoSus = $true
                         $patrones += "OFUSCADO_MEM:$($analisisMem.Tipo)"
                     }
                     
-                    # Buscar JMP hooks
+                  
+                    $addr = [IntPtr]($mem.Base.ToInt64() + $mem.Size.ToInt64())
                     for ($i=0; $i -lt $buf.Length-5; $i++) {
                         if ($buf[$i] -eq 0xE9) {
                             $dest = [BitConverter]::ToInt32($buf, $i+1)
@@ -389,5 +397,6 @@ $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 
 
 Test-Minecraft -Exportar
+
 
 
