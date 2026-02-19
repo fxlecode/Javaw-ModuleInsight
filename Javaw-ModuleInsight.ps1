@@ -234,7 +234,7 @@ foreach ($proc in $procesos) {
             $file = Get-Item -Path $path -EA Stop
             $sign = Get-AuthenticodeSignature -FilePath $path
             
-            # ANALISIS DE OFUSCACION PRINCIPAL
+            
             $analisis = Test-Ofuscacion -path $path
             
             $riesgo = "Bajo"
@@ -268,14 +268,14 @@ foreach ($proc in $procesos) {
                 $razones += "Sin firma"
             }
 
-            # Rutas sospechosas
+            
             $sospechoso = $path -match "\\Temp\\|\\TMP\\|\\AppData\\Local\\Temp\\|\\Downloads\\|\\Desktop\\|AppData\\Roaming\\[^\\]+\\.+\.dll$|AppData\\Local\\[^\\]+\\.+\.dll$"
             if ($sospechoso) {
                 $riesgo = "CRITICO"
                 $razones += "Ruta sospechosa"
             }
 
-            # Hooks
+            
             $hooks = @()
             if ($mod.ModuleName -in @("ws2_32.dll","wininet.dll","kernel32.dll","opengl32.dll","user32.dll")) {
                 try {
@@ -389,4 +389,5 @@ $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 
 
 Test-Minecraft -Exportar
+
 
