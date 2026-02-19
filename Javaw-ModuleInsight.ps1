@@ -178,10 +178,7 @@ foreach ($proc in $procesos) {
     $regiones = @()
 
     
-Write-Host "[*] Privilegios confirmados. Iniciando escaneo de 100GB (esto puede tardar)..." -Fore Gray
-    Write-Host "[*] Iniciando escaneo de memoria dinámica..." -Fore Gray
-
-    while ([MemStuff]::VirtualQueryEx($hProc, $addr, [ref]$mem, [System.Runtime.InteropServices.Marshal]::SizeOf($mem))) {
+while ([MemStuff]::VirtualQueryEx($hProc, $addr, [ref]$mem, [System.Runtime.InteropServices.Marshal]::SizeOf($mem))) {
         if ($mem.State -eq [MemStuff]::COMMIT -and ($mem.Protect -eq [MemStuff]::EXRW -or $mem.Protect -eq 0x40)) {
             $sizeMB = [Math]::Round($mem.Size.ToInt64() / 1MB, 2)
             
@@ -201,8 +198,6 @@ Write-Host "[*] Privilegios confirmados. Iniciando escaneo de 100GB (esto puede 
                         $patrones += "OFUSCADO_MEM:$($analisisMem.Tipo)"
                     }
                     
-                    
-                    
                     for ($i=0; $i -lt $buf.Length-5; $i++) {
                         if ($buf[$i] -eq 0xE9) {
                             $dest = [BitConverter]::ToInt32($buf, $i+1)
@@ -214,7 +209,6 @@ Write-Host "[*] Privilegios confirmados. Iniciando escaneo de 100GB (esto puede 
                     }
                 }
                 
-                
                 if ($isPE -or $tieneCodigoSus -or $sizeMB -gt 0.5) {
                     $regiones += @{
                         Dir = "0x$($mem.Base.ToString('X'))"
@@ -224,10 +218,11 @@ Write-Host "[*] Privilegios confirmados. Iniciando escaneo de 100GB (esto puede 
                         Patrones = $patrones
                         Ofuscado = if ($isPE) { (Test-Ofuscacion -bytesDirectos $buf).Ofuscado } else { $false }
                     }
-                }
-            }
-        }
+                } 
+            } 
+        } 
         
+       
         $addr = [IntPtr]($mem.Base.ToInt64() + $mem.Size.ToInt64())
     }
                         }
@@ -417,6 +412,7 @@ $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 
 
 Test-Minecraft -Exportar
+
 
 
 
