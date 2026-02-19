@@ -233,6 +233,7 @@ while ([MemStuff]::VirtualQueryEx($hProc, $addr, [ref]$mem, [System.Runtime.Inte
                     $regiones += @{
                         Dir = "0x$($mem.Base.ToString('X'))"
                         Size = $sizeMB
+                    }
                         PE = $isPE
                         Sus = $tieneCodigoSus
                         Patrones = $patrones
@@ -245,8 +246,9 @@ while ([MemStuff]::VirtualQueryEx($hProc, $addr, [ref]$mem, [System.Runtime.Inte
     }
 
     [void][MemStuff]::CloseHandle($hProc)
-
-    $mods = @()
+}
+        $mods = @()
+    }
     try { $mods = $proc.Modules | Where { $_.ModuleName -like "*.dll" } } catch {}
 
     foreach ($mod in $mods) {
@@ -383,9 +385,9 @@ while ([MemStuff]::VirtualQueryEx($hProc, $addr, [ref]$mem, [System.Runtime.Inte
     }
 }
 
-$orden = @{ "CRITICO" = 0; "MEDIO" = 1; "Bajo" = 2 }
-$result = $hallazgos | Sort { $orden[$_.Riesgo] }, PID
-
+    $orden = @{ "CRITICO" = 0; "MEDIO" = 1; "Bajo" = 2 }
+    $result = $hallazgos | Sort { $orden[$_.Riesgo] }, PID
+}
 Write-Host "`n========== RESULTADOS ==========" -Fore Cyan
 
 $ofuscados = $result | Where { $_.Ofuscado -eq $true }
@@ -407,17 +409,8 @@ if ($Exportar) {
     Write-Host "Guardado: $Ruta" -Fore Green
 }
 
-$result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
+    $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 }
 
 
 Test-Minecraft -Exportar
-
-
-
-
-
-
-
-
-
