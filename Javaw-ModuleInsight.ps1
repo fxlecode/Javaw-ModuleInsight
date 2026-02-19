@@ -43,7 +43,7 @@ function Test-Ofuscacion {
         $bytes = if ($bytesDirectos) { $bytesDirectos } else { [System.IO.File]::ReadAllBytes($path) }
         if ($bytes.Length -lt 64) { return $resultado }
         
-        # Entropia del PE header (debe ser baja ~3-5, si es >6.5 = cifrado/ofuscado)
+        
         $entropiaHeader = Get-Entropia $bytes[0..255]
         $resultado.Entropia = [Math]::Round($entropiaHeader, 2)
         
@@ -53,7 +53,7 @@ function Test-Ofuscacion {
             $resultado.Razones += "Entropia PE header: $entropiaHeader (cifrado)"
         }
         
-        # Buscar secciones con nombres raros o entropia alta
+        
         $peOffset = [BitConverter]::ToInt32($bytes, 0x3C)
         if ($peOffset -gt 0 -and $peOffset -lt $bytes.Length - 100) {
             $numSecciones = [BitConverter]::ToUInt16($bytes, $peOffset + 6)
@@ -69,7 +69,7 @@ function Test-Ofuscacion {
                 $rawSize = [BitConverter]::ToInt32($bytes, $secOffset + 16)
                 $rawAddr = [BitConverter]::ToInt32($bytes, $secOffset + 20)
                 
-                # Nombres ofuscados/comprimidos
+                
                 $nombresSospechosos = @("UPX", "ASPACK", "PECompact", ".vmp", ".themida", ".enigma", 
                 ".obs", "crypt", "cypher", "protect", "pack", "sec", "textc", "codex")
                 foreach ($ns in $nombresSospechosos) {
@@ -80,19 +80,19 @@ function Test-Ofuscacion {
                     }
                 }
                 
-                # Entropia de seccion code/data
+               
                 if ($rawSize -gt 512 -and $rawAddr -gt 0 -and ($rawAddr + $rawSize) -lt $bytes.Length) {
                     $secData = $bytes[$rawAddr..($rawAddr + [Math]::Min($rawSize, 65536))]
                     $entSec = Get-Entropia $secData
                     
-                    # .text (code) con entropia > 7 = cifrado/packed
+                    
                     if ($nombre -eq ".text" -and $entSec -gt 7.0) {
                         $resultado.Ofuscado = $true
                         $resultado.Tipo = "CODE_ENCRYPTED"
                         $resultado.Razones += ".text cifrado (entropia: $([Math]::Round($entSec,2)))"
                     }
                     
-                    # Seccion con nombre normal pero entropia imposible
+                   
                     if ($nombre -in @(".data",".rdata",".text") -and $entSec -gt 7.5) {
                         $resultado.Ofuscado = $true
                         $resultado.Tipo = "SUSPICIOUS_SECTION"
@@ -399,6 +399,7 @@ $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 
 
 Test-Minecraft -Exportar
+
 
 
 
