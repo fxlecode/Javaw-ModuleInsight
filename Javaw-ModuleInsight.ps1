@@ -177,7 +177,8 @@ foreach ($proc in $procesos) {
     $addr = [IntPtr]::Zero
     $regiones = @()
 
-
+    
+    Write-Host "[*] Privilegios confirmados. Iniciando escaneo de 100GB (esto puede tardar)..." -Fore Gray
     Write-Host "[*] Iniciando escaneo de memoria dinámica..." -Fore Gray
 
     while ([MemStuff]::VirtualQueryEx($hProc, $addr, [ref]$mem, [System.Runtime.InteropServices.Marshal]::SizeOf($mem))) {
@@ -398,6 +399,7 @@ $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 
 
 Test-Minecraft -Exportar
+
 
 
 
