@@ -177,6 +177,9 @@ foreach ($proc in $procesos) {
     $addr = [IntPtr]::Zero
     $regiones = @()
 
+
+    Write-Host "[*] Iniciando escaneo de memoria dinámica..." -Fore Gray
+
     while ([MemStuff]::VirtualQueryEx($hProc, $addr, [ref]$mem, [System.Runtime.InteropServices.Marshal]::SizeOf($mem))) {
         if ($mem.State -eq [MemStuff]::COMMIT -and ($mem.Protect -eq [MemStuff]::EXRW -or $mem.Protect -eq 0x40)) {
             $sizeMB = [Math]::Round($mem.Size.ToInt64() / 1MB, 2)
@@ -186,9 +189,6 @@ foreach ($proc in $procesos) {
                 $read = 0
                 [void][MemStuff]::ReadProcessMemory($hProc, $mem.Base, $buf, $buf.Length, [ref]$read)
                
-                if ($null -ne $addr -and $addr.ToInt64() % 1024MB -eq 0) { 
-                Write-Host "    > Escaneando dirección: 0x$($addr.ToString('X'))" -Fore Gray 
-            }
    
                 $isPE = ($buf[0] -eq 0x4D -and $buf[1] -eq 0x5A)
                 $tieneCodigoSus = $false
@@ -398,6 +398,7 @@ $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 
 
 Test-Minecraft -Exportar
+
 
 
 
