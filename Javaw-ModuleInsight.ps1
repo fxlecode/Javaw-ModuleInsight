@@ -157,9 +157,6 @@ if (-not $stringsExe) {
         Write-Host "Fallo descarga" -Fore Yellow
     }
 }
-    if ($addr.ToInt64() % 1024MB -eq 0) { 
-        Write-Host "    > Analizando bloque: 0x$($addr.ToString('X'))" -Fore Gray 
-    }
 
 $procesos = Get-Process -Name @("javaw","java") -EA SilentlyContinue | Where { 
     $_.MainWindowTitle -match "Minecraft|Lunar|Badlion|Forge|Fabric|OptiFine" -or 
@@ -188,7 +185,11 @@ foreach ($proc in $procesos) {
                 $buf = New-Object byte[] ([Math]::Min(8192, $mem.Size.ToInt64()))
                 $read = 0
                 [void][MemStuff]::ReadProcessMemory($hProc, $mem.Base, $buf, $buf.Length, [ref]$read)
-                
+               
+                if ($null -ne $addr -and $addr.ToInt64() % 1024MB -eq 0) { 
+                Write-Host "    > Escaneando dirección: 0x$($addr.ToString('X'))" -Fore Gray 
+            }
+   
                 $isPE = ($buf[0] -eq 0x4D -and $buf[1] -eq 0x5A)
                 $tieneCodigoSus = $false
                 $patrones = @()
@@ -397,6 +398,7 @@ $result | Out-GridView -Title "Minecraft Forensic - Ofuscacion Detection"
 
 
 Test-Minecraft -Exportar
+
 
 
 
